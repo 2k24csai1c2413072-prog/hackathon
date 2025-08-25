@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// A simple hash set implementation for strings
+// This is a basic implementation for demonstration purposes.
+// A more robust one might use a better hash function and handle collisions differently.
+#define HASH_TABLE_SIZE 101
+
+typedef struct Node {
+    char* str;
+    struct Node* next;
+} Node;
+
+Node* hashTable[HASH_TABLE_SIZE];
+
+// Simple hash function
+unsigned int hash(const char* str) {
+    unsigned int hashVal = 0;
+    while (*str != '\0') {
+        hashVal = (hashVal * 31) + (*str);
+        str++;
+    }
+    return hashVal % HASH_TABLE_SIZE;
+}
+
+// Add a string to the hash set
+void addToSet(const char* str) {
+    unsigned int index = hash(str);
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->str = strdup(str);
+    newNode->next = hashTable[index];
+    hashTable[index] = newNode;
+}
+
+// Check if a string is in the hash set
+int isInSet(const char* str) {
+    unsigned int index = hash(str);
+    Node* current = hashTable[index];
+    while (current != NULL) {
+        if (strcmp(current->str, str) == 0) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+// Get the size of the hash set
+int getSetSize() {
+    int count = 0;
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        Node* current = hashTable[i];
+        while (current != NULL) {
+            count++;
+            current = current->next;
+        }
+    }
+    return count;
+}
+
+// Free the memory used by the hash set
+void freeSet() {
+    for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+        Node* current = hashTable[i];
+        while (current != NULL) {
+            Node* temp = current;
+            current = current->next;
+            free(temp->str);
+            free(temp);
+        }
+        hashTable[i] = NULL;
+    }
+}
+
+int numUniqueEmails(char** emails, int emailsSize) {
+    freeSet(); // Clear the set before processing
+    
+    for (int i = 0; i < emailsSize; i++) {
+        char* email = emails[i];
+        
+        char localName[101]; // Max length of local name is 100
+        char domainName[101]; // Max length of domain name is 100
+        
+        int atIndex = -1;
+        for (int j = 0; j < strlen(email); j++) {
+            if (email[j] == '@') {
+                atIndex = j;
+                break;
+            }
+        }
+        
+        // Copy local and domain names
+        strncpy(localName, email, atIndex);
+        localName[atIndex] = '\0';
+        strcpy(domainName, email + atIndex + 1);
+        
+        // Process the local name
+        char processedLocalName[101];
+        int processedIndex = 0;
+        for (int j = 0; j < strlen(localName); j++) {
+            if (localName[j] == '.') {
+                continue; // Ignore periods
+            }
+            if (localName[j] == '+') {
+                break; // Ignore everything after a plus
+            }
+            processedLocalName[processedIndex++] = localName[j];
+        }
+        processedLocalName[processedIndex] = '\0';
+        
+        // Construct the canonical email address
+        char canonicalEmail[202]; // Max length of 200 + '@' + null terminator
+        sprintf(canonicalEmail, "%s@%s", processedLocalName, domainName);
+        
+        // Add the canonical email to the set if it's not already there
+        if (!isInSet(canonicalEmail)) {
+            addToSet(canonicalEmail);
+        }
+    }
+    
+    int uniqueCount = getSetSize();
+    freeSet();
+    return uniqueCount;
+}
