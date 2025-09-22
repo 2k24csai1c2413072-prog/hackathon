@@ -1,0 +1,76 @@
+#include <stdlib.h>
+
+// Comparison function for qsort
+int compare(const void *a, const void *b) {
+    long long aa = *(const long long *)a;
+    long long bb = *(const long long *)b;
+    if (aa < bb) return -1;
+    if (aa > bb) return 1;
+    return 0;
+}
+
+// Lower bound: returns the index of the first element >= val
+int lower_bound(long long *arr, int size, long long val) {
+    int low = 0;
+    int high = size;
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] >= val) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+    return low;
+}
+
+// Upper bound: returns the index of the first element > val
+int upper_bound(long long *arr, int size, long long val) {
+    int low = 0;
+    int high = size;
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        if (arr[mid] > val) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+    return low;
+}
+
+int fourSumCount(int* nums1, int nums1Size, int* nums2, int nums2Size, int* nums3, int nums3Size, int* nums4, int nums4Size) {
+    int n = nums1Size;  // Assuming all arrays have the same length n
+    long long *sums12 = (long long *)malloc((size_t)n * n * sizeof(long long));
+    int idx = 0;
+    int i, j;
+    
+    // Compute all sums of nums1[i] + nums2[j]
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            sums12[idx++] = (long long)nums1[i] + nums2[j];
+        }
+    }
+    
+    // Sort the sums12 array
+    qsort(sums12, (size_t)n * n, sizeof(long long), compare);
+    
+    long long total = 0;
+    int k, l;
+    long long sum34, target;
+    int left, right;
+    
+    // For each pair (k, l), compute required target and count matches
+    for (k = 0; k < n; k++) {
+        for (l = 0; l < n; l++) {
+            sum34 = (long long)nums3[k] + nums4[l];
+            target = -sum34;
+            left = lower_bound(sums12, n * n, target);
+            right = upper_bound(sums12, n * n, target);
+            total += (right - left);
+        }
+    }
+    
+    free(sums12);
+    return (int)total;
+}
