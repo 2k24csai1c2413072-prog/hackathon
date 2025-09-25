@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int sansaXor(int arr[], int n) {
+    if (n % 2 == 0) {
+        return 0;
+    }
+    int res = 0;
+    for (int i = 0; i < n; i += 2) {
+        res ^= arr[i];
+    }
+    return res;
+}
+
+int main() {
+    int t;
+    scanf("%d", &t);
+    for (int t_itr = 0; t_itr < t; t_itr++) {
+        int n;
+        scanf("%d", &n);
+        int *arr = (int *)malloc(n * sizeof(int));
+        for (int i = 0; i < n; i++) {
+            scanf("%d", &arr[i]);
+        }
+        int result = sansaXor(arr, n);
+        printf("%d\n", result);
+        free(arr);
+    }
+    return 0;
+}
