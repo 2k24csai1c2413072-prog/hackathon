@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * @brief Finds the minimum number of loaves to distribute to make all counts even.
+ * * @param B_count The number of subjects in the line (N).
+ * @param B The array of loaves each person starts with. (Note: The array will be modified.)
+ * @return The minimum number of loaves required as a string, or "NO" if impossible.
+ */
+char* fairRations(int B_count, int* B) {
+    long long loaves_distributed = 0;
+    
+    // 1. Greedy Distribution
+    // Iterate up to the second-to-last subject (B_count - 1).
+    for (int i = 0; i < B_count - 1; i++) {
+        // If the current person's loaf count is odd:
+        if (B[i] % 2 != 0) {
+            // Fix B[i] by giving 1 loaf to i and 1 to i+1.
+            
+            // Person i: becomes even
+            B[i] += 1;
+            
+            // Person i+1: changes its parity
+            B[i + 1] += 1;
+            
+            // A pair of loaves was distributed.
+            loaves_distributed += 2;
+        }
+    }
+
+    // 2. Final Parity Check
+    // After the loop, the last person B[N-1] must also be even.
+    // If B[N-1] is odd, no solution is possible (this happens if the total initial sum was odd).
+    if (B[B_count - 1] % 2 != 0) {
+        // Allocate and return "NO"
+        char* result = (char*)malloc(3 * sizeof(char));
+        if (result == NULL) return NULL; 
+        strcpy(result, "NO");
+        return result;
+    }
+
+    // 3. Return Result
+    // Allocate memory for the result string (a long long can be up to 19 digits).
+    // 25 characters is a safe buffer size.
+    char* result = (char*)malloc(25 * sizeof(char));
+    if (result == NULL) return NULL; 
+    
+    // Convert the long long count to a string
+    sprintf(result, "%lld", loaves_distributed);
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+
+int main() {
+    int N;
+    // Read the number of subjects
+    if (scanf("%d", &N) != 1) return 1;
+
+    // Allocate memory for the array B
+    int* B = (int*)malloc(N * sizeof(int));
+    if (B == NULL) return 1; // Handle memory allocation failure
+
+    // Read the initial loaves counts
+    for (int i = 0; i < N; i++) {
+        if (scanf("%d", &B[i]) != 1) {
+            free(B);
+            return 1;
+        }
+    }
+
+    // Call the function
+    char* result = fairRations(N, B);
+
+    // Print the result
+    if (result != NULL) {
+        printf("%s\n", result);
+        free(result); // Free the memory allocated inside fairRations
+    }
+    
+    // Free the array B
+    free(B);
+
+    return 0;
+}
