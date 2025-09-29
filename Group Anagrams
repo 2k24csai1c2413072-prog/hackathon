@@ -1,0 +1,107 @@
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * Return an array of arrays of size *returnSize.
+ * The sizes of the arrays are returned as *returnColumnSizes array.
+ * Note: Both returned array and *columnSizes array must be malloced, assume caller calls free().
+ */
+
+int char_cmp(const void *a, const void *b) {
+    return (int)(*(const char *)a - *(const char *)b);
+}
+
+int idx_cmp(const void *a, const void *b, char **sorted) {
+    int ia = *(const int *)a;
+    int ib = *(const int *)b;
+    return strcmp(sorted[ia], sorted[ib]);
+}
+
+char *** groupAnagrams(char ** strs, int strsSize, int* returnSize, int** returnColumnSizes) {
+    if (strsSize == 0) {
+        *returnSize = 0;
+        *returnColumnSizes = NULL;
+        return NULL;
+    }
+
+    char **sorted = (char **)malloc(strsSize * sizeof(char *));
+    for (int i = 0; i < strsSize; i++) {
+        int len = strlen(strs[i]);
+        sorted[i] = (char *)malloc((len + 1) * sizeof(char));
+        strcpy(sorted[i], strs[i]);
+        if (len > 0) {
+            qsort(sorted[i], len, sizeof(char), char_cmp);
+        }
+    }
+
+    int *indices = (int *)malloc(strsSize * sizeof(int));
+    for (int i = 0; i < strsSize; i++) {
+        indices[i] = i;
+    }
+
+    // Custom qsort with extra param, but since C qsort doesn't support, we'll use a global or something.
+    // To avoid global, we can use a struct or just sort with lambda-like, but in C, we'll define comparator using sorted as external.
+    // For simplicity, make sorted global? No, better to use qsort with comparator that uses external sorted.
+    // In C, comparator can't take extra args, so we'll declare sorted as static or external, but for LeetCode, we can put it inside.
+
+    // Actually, to make it work, we'll define the comparator as a function that takes sorted as param, but qsort doesn't allow.
+    // Solution: use a struct for indices with pointer to sorted, but complicated.
+    // Since n small, we can implement our own sort, but to keep simple, we'll use qsort and make comparator access a static variable.
+
+    // Let's make sorted static for the purpose.
+    static char **static_sorted;
+    static_sorted = sorted;
+
+    int static_idx_cmp(const void *a, const void *b) {
+        int ia = *(const int *)a;
+        int ib = *(const int *)b;
+        return strcmp(static_sorted[ia], static_sorted[ib]);
+    }
+
+    qsort(indices, strsSize, sizeof(int), static_idx_cmp);
+
+    // Now count groups
+    int num_groups = 0;
+    if (strsSize > 0) {
+        num_groups = 1;
+        for (int i = 1; i < strsSize; i++) {
+            if (strcmp(static_sorted[indices[i]], static_sorted[indices[i - 1]]) != 0) {
+                num_groups++;
+            }
+        }
+    }
+    *returnSize = num_groups;
+
+    char ***result = (char ***)malloc(num_groups * sizeof(char **));
+    int *col_sizes = (int *)malloc(num_groups * sizeof(int));
+    *returnColumnSizes = col_sizes;
+
+    if (num_groups == 0) {
+        return result;
+    }
+
+    int group_idx = 0;
+    int start = 0;
+    for (int i = 1; i <= strsSize; i++) {
+        if (i == strsSize || strcmp(static_sorted[indices[i]], static_sorted[indices[i - 1]]) != 0) {
+            int group_size = i - start;
+            col_sizes[group_idx] = group_size;
+            result[group_idx] = (char **)malloc(group_size * sizeof(char *));
+            for (int j = 0; j < group_size; j++) {
+                int orig_idx = indices[start + j];
+                result[group_idx][j] = strs[orig_idx];
+            }
+            group_idx++;
+            start = i;
+        }
+    }
+
+    // Cleanup
+    for (int i = 0; i < strsSize; i++) {
+        free(sorted[i]);
+    }
+    free(sorted);
+    free(indices);
+
+    return result;
+}
