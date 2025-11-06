@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int T;
+    scanf("%d", &T);
+    for (int t = 0; t < T; t++) {
+        int n, k;
+        scanf("%d %d", &n, &k);
+        long long *a = (long long *)malloc(n * sizeof(long long));
+        for (int i = 0; i < n; i++) {
+            scanf("%lld", &a[i]);
+        }
+        long long *prefix = (long long *)malloc((n + 1) * sizeof(long long));
+        prefix[0] = 0;
+        for (int i = 1; i <= n; i++) {
+            prefix[i] = prefix[i - 1] + a[i - 1];
+        }
+        long long *freq = (long long *)malloc(k * sizeof(long long));
+        for (int i = 0; i < k; i++) {
+            freq[i] = 0;
+        }
+        freq[0] = 1;
+        long long ans = 0;
+        for (int i = 1; i <= n; i++) {
+            int mod = prefix[i] % k;
+            if (mod < 0) mod += k; // Though not necessary here since prefix >= 0
+            ans += freq[mod];
+            freq[mod]++;
+        }
+        printf("%lld\n", ans);
+        free(a);
+        free(prefix);
+        free(freq);
+    }
+    return 0;
+}
