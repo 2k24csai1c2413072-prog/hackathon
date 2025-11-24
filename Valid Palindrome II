@@ -1,0 +1,35 @@
+#include <stdbool.h>
+#include <string.h>
+
+bool isPalindrome(char* s, int start, int end) {
+    while (start < end) {
+        if (s[start] != s[end]) {
+            return false;
+        }
+        start++;
+        end--;
+    }
+    return true;
+}
+
+bool validPalindrome(char* s) {
+    int n = strlen(s);
+    int left = 0, right = n - 1;
+    while (left < right) {
+        if (s[left] == s[right]) {
+            left++;
+            right--;
+        } else {
+            // Try removing the character at left
+            if (isPalindrome(s, left + 1, right)) {
+                return true;
+            }
+            // Try removing the character at right
+            if (isPalindrome(s, left, right - 1)) {
+                return true;
+            }
+            return false;
+        }
+    }
+    return true;
+}
