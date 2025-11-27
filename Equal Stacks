@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int cmp(const void *a, const void *b) {
+    long long aa = *(long long *)a;
+    long long bb = *(long long *)b;
+    if (aa < bb) return -1;
+    if (aa > bb) return 1;
+    return 0;
+}
+
+int main() {
+    int n1, n2, n3;
+    scanf("%d %d %d", &n1, &n2, &n3);
+    
+    long long *h1 = (long long *)malloc(n1 * sizeof(long long));
+    for (int i = 0; i < n1; i++) scanf("%lld", &h1[i]);
+    
+    long long *h2 = (long long *)malloc(n2 * sizeof(long long));
+    for (int i = 0; i < n2; i++) scanf("%lld", &h2[i]);
+    
+    long long *h3 = (long long *)malloc(n3 * sizeof(long long));
+    for (int i = 0; i < n3; i++) scanf("%lld", &h3[i]);
+    
+    // Compute sums for h1
+    long long *sums1 = (long long *)malloc((n1 + 1) * sizeof(long long));
+    int idx = 0;
+    long long total = 0;
+    for (int i = n1 - 1; i >= 0; i--) {
+        total += h1[i];
+        sums1[idx++] = total;
+    }
+    sums1[idx++] = 0;
+    
+    // Compute sums for h2
+    long long *sums2 = (long long *)malloc((n2 + 1) * sizeof(long long));
+    idx = 0;
+    total = 0;
+    for (int i = n2 - 1; i >= 0; i--) {
+        total += h2[i];
+        sums2[idx++] = total;
+    }
+    sums2[idx++] = 0;
+    
+    // Compute sums for h3
+    long long *sums3 = (long long *)malloc((n3 + 1) * sizeof(long long));
+    idx = 0;
+    total = 0;
+    for (int i = n3 - 1; i >= 0; i--) {
+        total += h3[i];
+        sums3[idx++] = total;
+    }
+    sums3[idx++] = 0;
+    
+    // Sort the sums arrays
+    qsort(sums1, n1 + 1, sizeof(long long), cmp);
+    qsort(sums2, n2 + 1, sizeof(long long), cmp);
+    qsort(sums3, n3 + 1, sizeof(long long), cmp);
+    
+    // Three pointers from the end
+    int i = n1;
+    int j = n2;
+    int k = n3;
+    while (i >= 0 && j >= 0 && k >= 0) {
+        if (sums1[i] == sums2[j] && sums2[j] == sums3[k]) {
+            printf("%lld\n", sums1[i]);
+            free(h1);
+            free(h2);
+            free(h3);
+            free(sums1);
+            free(sums2);
+            free(sums3);
+            return 0;
+        }
+        if (sums1[i] >= sums2[j] && sums1[i] >= sums3[k]) {
+            i--;
+        } else if (sums2[j] >= sums1[i] && sums2[j] >= sums3[k]) {
+            j--;
+        } else {
+            k--;
+        }
+    }
+    
+    // Should not reach here, but just in case
+    printf("0\n");
+    free(h1);
+    free(h2);
+    free(h3);
+    free(sums1);
+    free(sums2);
+    free(sums3);
+    return 0;
+}
